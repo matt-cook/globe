@@ -41,6 +41,9 @@
   
   /* http://cesiumjs.org/Cesium/Build/Documentation/SceneTransforms.html?classFilter=&show=all#wgs84ToWindowCoordinates */
   
+  var SETTINGS = {};
+  SETTINGS["Outline Norway"] = false;
+  
     var viewer = new Cesium.Viewer('map', {
       animation:false,
       baseLayerPicker:false,
@@ -76,11 +79,10 @@
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
     
-     var ds = new Cesium.GeoJsonDataSource();
+    var ds = new Cesium.GeoJsonDataSource();
     ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
     ds.defaultPolygon.polygon = undefined;
     ds.loadUrl('./norway.json');
-    viewer.dataSources.add(ds);
     
     window.onload = function() {
       var gui = new dat.GUI();
@@ -100,6 +102,10 @@
       f1.add(viewer.scene.camera.up, 'x').listen();
       f1.add(viewer.scene.camera.up, 'y').listen();
       f1.add(viewer.scene.camera.up, 'z').listen();
+      gui.add(SETTINGS,'Outline Norway').onChange(function(value) {
+        if(value) viewer.dataSources.add(ds);
+        else viewer.dataSources.remove(ds);
+      });
     };
   
   //norway starting position
