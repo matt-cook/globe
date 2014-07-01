@@ -1,0 +1,12 @@
+{
+    "attribution": "2014 ZEBRADOG", 
+    "name": "Livsreise", 
+    "description": "Livsreise", 
+    "bounds": "-180,-85.0511,180,85.0511", 
+    "minzoom": "0", 
+    "version": "1.0.0", 
+    "template": "", 
+    "maxzoom": "5", 
+    "legend": "", 
+    "center": "0,20,3"
+}
