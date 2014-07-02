@@ -104,6 +104,11 @@
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
     
+    var terrainProvider = new Cesium.CesiumTerrainProvider({
+        url : '//cesiumjs.org/tilesets/terrain/smallterrain'
+    });
+    viewer.scene.terrainProvider = terrainProvider;
+    
     var ds = new Cesium.GeoJsonDataSource();
     ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
     ds.defaultPolygon.polygon = undefined;
