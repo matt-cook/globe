@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <title>Globe</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="js/lib/stretch-video.js"></script>
     <script src="js/lib/Cesium/Cesium.js"></script>
     <script src="js/lib/dat.gui.min.js"></script>
     <style>
@@ -33,10 +35,33 @@
         right:0;
         -webkit-filter: contrast(80%) saturate(100%) brightness(100%) sepia(25%) drop-shadow(0px 0px 40px rgb(245,245,210));
       }
+      #clouds{
+        pointer-events:none;
+      }
+      #cloudContainer{
+        position:absolute;
+        top:0%;
+        left:0%;
+        height:100%;
+        width:100%;
+        pointer-events:none;
+      }
+      video
+      {
+        position:absolute;
+      }
+      video.StretchtoFit
+      {
+        /* Important: No Height attribute is being specified */
+        width: 100%;
+      }
     </style>
   </head>
 <body>
   <div id="map"></div>
+  <div id="cloudContainer">
+    <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
+  </div>
   <script>
   
   /* http://cesiumjs.org/Cesium/Build/Documentation/SceneTransforms.html?classFilter=&show=all#wgs84ToWindowCoordinates */
