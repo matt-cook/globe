@@ -68,6 +68,27 @@
   
   var SETTINGS = {};
   SETTINGS["Outline Norway"] = false;
+  SETTINGS["Zoom Duration"] = 3.0;
+  var isZoomed = false;
+  SETTINGS["Zoom"] = function(){
+    if(isZoomed){
+      viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+        destination : start.position,
+        direction: start.direction,
+        up: start.up,
+        duration: SETTINGS["Zoom Duration"]*1000
+      }));
+    }else{
+      viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+        destination : end.position,
+        direction: end.direction,
+        up: end.up,
+        duration: SETTINGS["Zoom Duration"]*1000
+      }));
+    }
+    isZoomed = !isZoomed;
+  };
+  
   
     var viewer = new Cesium.Viewer('map', {
       animation:false,
@@ -92,7 +113,15 @@
       baseLayerPicker : false
     });
     
-
+    var start = {}; //norway starting position
+    start.position = new Cesium.Cartesian3(4386332.163006191,1188368.0173394924,6153437.48635143);
+    start.direction = new Cesium.Cartesian3(-0.9008236819028285,-0.3410092694636061,-0.2687552274150766);
+    start.up = new Cesium.Cartesian3(-0.2423848364942298,-0.1185885488280502,0.9629051599843687);
+    
+    var end = {}; //zoom end position
+    end.position = new Cesium.Cartesian3(3171739,362164.0727772717,5505013.132590841);
+    end.direction = new Cesium.Cartesian3(-0.9230299407299847,-0.2029452945904875,0.326846961001651);
+    end.up = new Cesium.Cartesian3(0.3276981951973083,0.030374677728440012,0.944294059409731);
     
     viewer.scene.skyBox.destroy();
     viewer.scene.skyBox = undefined;
@@ -104,10 +133,11 @@
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
     
-   /*var terrainProvider = new Cesium.CesiumTerrainProvider({
-        url : '//cesiumjs.org/tilesets/terrain/smallterrain'
+
+  /* var terrainProvider = new Cesium.CesiumTerrainProvider({
+        url : '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
     });
-    viewer.scene.terrainProvider = terrainProvider;*/
+    viewer.scene.terrainProvider = terrainProvider; */
     
     var ds = new Cesium.GeoJsonDataSource();
     ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
@@ -136,19 +166,15 @@
         if(value) viewer.dataSources.add(ds);
         else viewer.dataSources.remove(ds);
       });
+      gui.add(SETTINGS,'Zoom');
+      gui.add(SETTINGS,'Zoom Duration',0.1,20.0);
     };
   
-  //norway starting position
-  var position = new Cesium.Cartesian3(4386332.163006191,1188368.0173394924,6153437.48635143);
-  var direction = new Cesium.Cartesian3(-0.9008236819028285,-0.3410092694636061,-0.2687552274150766);
-  var up = new Cesium.Cartesian3(-0.2423848364942298,-0.1185885488280502,0.9629051599843687);
-  
-  var flight = Cesium.CameraFlightPath.createAnimation(viewer.scene, {
-        destination : position,
-        direction: direction,
-        up: up
-  });
-  viewer.scene.animations.add(flight);
+  viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+    destination : start.position,
+    direction: start.direction,
+    up: start.up
+  }));
   
 
     
