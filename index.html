@@ -1,7 +1,14 @@
+<!-- source: https://github.com/zebradog/globe -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <title>Globe</title>
+    <script type="text/javascript">
+    if(!window.chrome) {
+      alert("This application requires Google Chrome");
+      window.location = "http://www.google.com/chrome";
+    }
+    </script>
     <script src="js/lib/jquery.min.js"></script>
     <script src="js/lib/jquery.transit.min.js"></script>
     <script src="js/lib/stretch-video.js"></script>
