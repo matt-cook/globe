@@ -44,6 +44,7 @@
         background-image:url(img/content.jpg);
         background-size:cover;
         opacity:0;
+        pointer-events:none;
       }
       #clouds{
         pointer-events:none;
@@ -73,7 +74,6 @@
   <div id="content"></div>
   <div class="cloud container">
     <video id="zoom" class="StretchtoFit" src="video/zoom.webm"></video>
-    <!-- <video id="zoomReverse" class="StretchtoFit" src="video/zoom-reverse.webm"></video> -->
     <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
   </div>
   <script>
@@ -87,21 +87,6 @@
   var isZoomed = false;
   SETTINGS["Zoom"] = function(){
     if(isZoomed){
-      /*var v = document.getElementById('zoomReverse');
-      v.playbackRate = v.duration/SETTINGS["Zoom Duration"];
-      v.currentTime = 0;
-      v.onended = function(){
-        document.getElementById('zoomReverse').pause();
-      }
-      v.addEventListener('timeupdate',function(){
-        var v = document.getElementById('zoomReverse');
-        if(v.currentTime >= (v.duration - SETTINGS["Video Transition"])){
-          v.pause();
-          $("#content").css({opacity:0});
-          v.play();
-        }
-      });
-      v.play();*/
       $("#content").transition({opacity:0});
       viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
         destination : start.position,
@@ -152,7 +137,8 @@
         }
       },
       imageryProvider : new Cesium.TileMapServiceImageryProvider({
-          url : './tiles'
+          url : './tiles',
+          maximumLevel: 8
       }),
       baseLayerPicker : false
     });
@@ -171,12 +157,7 @@
     viewer.scene.skyAtmosphere.destroy();
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
-    
-  /* var terrainProvider = new Cesium.CesiumTerrainProvider({
-        url : '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
-    });
-    viewer.scene.terrainProvider = terrainProvider; */
-    
+
     var ds = new Cesium.GeoJsonDataSource();
     ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
     ds.defaultPolygon.polygon = undefined;
