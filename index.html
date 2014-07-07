@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <title>Globe</title>
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/jquery.transit.min.js"></script>
     <script src="js/lib/stretch-video.js"></script>
     <script src="js/lib/Cesium/Cesium.js"></script>
     <script src="js/lib/dat.gui.min.js"></script>
@@ -38,7 +39,7 @@
       #clouds{
         pointer-events:none;
       }
-      #cloudContainer{
+      .cloud.container{
         position:absolute;
         top:0%;
         left:0%;
@@ -59,7 +60,10 @@
   </head>
 <body>
   <div id="map"></div>
-  <div id="cloudContainer">
+  <div class="cloud container">
+    <video id="zoom" class="StretchtoFit" src="video/zoom.webm"></video>
+  </div>
+  <div class="cloud container">
     <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
   </div>
   <script>
@@ -68,10 +72,14 @@
   
   var SETTINGS = {};
   SETTINGS["Outline Norway"] = false;
-  SETTINGS["Zoom Duration"] = 3.0;
+  SETTINGS["Zoom Duration"] = 10.0;
   var isZoomed = false;
   SETTINGS["Zoom"] = function(){
     if(isZoomed){
+      var v = document.getElementById('zoom');
+      $(v).transition({opacity:0},function(e){
+        $(this).get(0).currentTime = 0;
+      });
       viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
         destination : start.position,
         direction: start.direction,
@@ -79,11 +87,19 @@
         duration: SETTINGS["Zoom Duration"]*1000
       }));
     }else{
+      var v = document.getElementById('zoom');
+      var duration = SETTINGS["Zoom Duration"]*1000;
+      //only play transition video on last 1/3
+      var CLOUD_START = 2/3;
+      setTimeout(function(){
+          v.playbackRate = (30*1000)/duration; //video set up for maximum 30 second transition
+          v.currentTime = 0;
+          v.play();
+          $(v).css({opacity:1.0});
+      },duration*CLOUD_START);
       viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
-        destination : end.position,
-        direction: end.direction,
-        up: end.up,
-        duration: SETTINGS["Zoom Duration"]*1000
+        destination : new Cesium.Cartesian3(3171739,362164.0727772717,5505013.132590841),
+        duration: duration
       }));
     }
     isZoomed = !isZoomed;
@@ -117,11 +133,6 @@
     start.position = new Cesium.Cartesian3(4386332.163006191,1188368.0173394924,6153437.48635143);
     start.direction = new Cesium.Cartesian3(-0.9008236819028285,-0.3410092694636061,-0.2687552274150766);
     start.up = new Cesium.Cartesian3(-0.2423848364942298,-0.1185885488280502,0.9629051599843687);
-    
-    var end = {}; //zoom end position
-    end.position = new Cesium.Cartesian3(3171739,362164.0727772717,5505013.132590841);
-    end.direction = new Cesium.Cartesian3(-0.9230299407299847,-0.2029452945904875,0.326846961001651);
-    end.up = new Cesium.Cartesian3(0.3276981951973083,0.030374677728440012,0.944294059409731);
     
     viewer.scene.skyBox.destroy();
     viewer.scene.skyBox = undefined;
@@ -167,7 +178,7 @@
         else viewer.dataSources.remove(ds);
       });
       gui.add(SETTINGS,'Zoom');
-      gui.add(SETTINGS,'Zoom Duration',0.1,20.0);
+      gui.add(SETTINGS,'Zoom Duration',0.1,30.0);
     };
   
   viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
