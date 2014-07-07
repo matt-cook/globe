@@ -20,7 +20,6 @@
         padding: 0;
         font-family: sans-serif;
       }
-
       body {
         padding: 0;
         margin: 0;
@@ -36,6 +35,16 @@
         right:0;
         -webkit-filter: contrast(80%) saturate(100%) brightness(100%) sepia(25%) drop-shadow(0px 0px 40px rgb(245,245,210));
       }
+      #content{
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background-image:url(img/content.jpg);
+        background-size:cover;
+        opacity:0;
+      }
       #clouds{
         pointer-events:none;
       }
@@ -50,6 +59,7 @@
       video
       {
         position:absolute;
+        pointer-events:none;
       }
       video.StretchtoFit
       {
@@ -60,10 +70,10 @@
   </head>
 <body>
   <div id="map"></div>
+  <div id="content"></div>
   <div class="cloud container">
     <video id="zoom" class="StretchtoFit" src="video/zoom.webm"></video>
-  </div>
-  <div class="cloud container">
+    <!-- <video id="zoomReverse" class="StretchtoFit" src="video/zoom-reverse.webm"></video> -->
     <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
   </div>
   <script>
@@ -73,13 +83,26 @@
   var SETTINGS = {};
   SETTINGS["Outline Norway"] = false;
   SETTINGS["Zoom Duration"] = 10.0;
+  SETTINGS["Video Transition"] = 30; //point at which video is solid white, in seconds
   var isZoomed = false;
   SETTINGS["Zoom"] = function(){
     if(isZoomed){
-      var v = document.getElementById('zoom');
-      $(v).transition({opacity:0},function(e){
-        $(this).get(0).currentTime = 0;
+      /*var v = document.getElementById('zoomReverse');
+      v.playbackRate = v.duration/SETTINGS["Zoom Duration"];
+      v.currentTime = 0;
+      v.onended = function(){
+        document.getElementById('zoomReverse').pause();
+      }
+      v.addEventListener('timeupdate',function(){
+        var v = document.getElementById('zoomReverse');
+        if(v.currentTime >= (v.duration - SETTINGS["Video Transition"])){
+          v.pause();
+          $("#content").css({opacity:0});
+          v.play();
+        }
       });
+      v.play();*/
+      $("#content").transition({opacity:0});
       viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
         destination : start.position,
         direction: start.direction,
@@ -88,18 +111,23 @@
       }));
     }else{
       var v = document.getElementById('zoom');
-      var duration = SETTINGS["Zoom Duration"]*1000;
-      //only play transition video on last 1/3
-      var CLOUD_START = 2/3;
-      setTimeout(function(){
-          v.playbackRate = (30*1000)/duration; //video set up for maximum 30 second transition
-          v.currentTime = 0;
+      v.playbackRate = v.duration/SETTINGS["Zoom Duration"];
+      v.currentTime = 0;
+      v.onended = function(){
+        document.getElementById('zoom').pause();
+      }
+      v.addEventListener('timeupdate',function(){
+        var v = document.getElementById('zoom');
+        if(v.currentTime >= SETTINGS["Video Transition"]){
+          v.pause();
+          $("#content").css({opacity:1});
           v.play();
-          $(v).css({opacity:1.0});
-      },duration*CLOUD_START);
+        }
+      });
+      v.play();
       viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
         destination : new Cesium.Cartesian3(3171739,362164.0727772717,5505013.132590841),
-        duration: duration
+        duration: SETTINGS["Zoom Duration"]*1000
       }));
     }
     isZoomed = !isZoomed;
@@ -144,7 +172,6 @@
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
     
-
   /* var terrainProvider = new Cesium.CesiumTerrainProvider({
         url : '//cesiumjs.org/stk-terrain/tilesets/world/tiles'
     });
@@ -187,8 +214,6 @@
     up: start.up
   }));
   
-
-    
    /* var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction(function(movement) {
     
