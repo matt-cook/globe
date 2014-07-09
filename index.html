@@ -297,7 +297,7 @@
   
     // Ellipsoid radii - WGS84 shown here
     
-    var scale = 1.04; //hide point before reaching edge
+    var scale = 1.00; //hide point before reaching edge
     
     var rX = 6378137.0 * scale;
     var rY = 6378137.0 * scale;
@@ -359,6 +359,7 @@
       $('.point').each(function(){
           var $p = $(this);
           p = getPointPosition($p);
+          if(p.x > w || p.x < 0 || p.y > h || p.y < 0) p.visible = false;
           $p.css({
               left: p.x+'px',
               bottom: p.y+'px'
@@ -369,9 +370,12 @@
       });
       
       var prevCity, prevP, prevPoints;
+      var h = $('.container').height();
+      var w = $('.container').width();
       $.each(route,function(city,points){
             var p = getPointPosition($('.'+city));
             if(p){
+              if(p.x > w || p.x < 0 || p.y > h || p.y < 0) p.visible = false;
               if(prevP){
                 if(p.visible && prevP.visible){
                   if(!lines[prevCity]) lines[prevCity] = {};
@@ -383,18 +387,18 @@
                   var lineData = [];
                   lineData.push({
                     "x": prevP.x,
-                    "y": $('.container').height()-prevP.y
+                    "y": h-prevP.y
                   });
                   $.each(prevPoints,function(i,v){
                      var v = getCartPosition(v[0],v[1]);
                      lineData.push({
                         "x": v.x,
-                        "y": $('.container').height()-v.y
+                        "y": h-v.y
                       });
                   });
                   lineData.push({
                     "x": p.x,
-                    "y": $('.container').height()-p.y
+                    "y": h-p.y
                   });
                   lines[prevCity][city].attr("d", lineFunction(lineData));
                 }else if(lines[prevCity] && lines[prevCity][city]){
