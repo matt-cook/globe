@@ -16,69 +16,67 @@
     <script src="js/lib/dat.gui.min.js"></script>
     <style>
       @import url(js/lib/Cesium/Widgets/widgets.css);
-      #cesiumContainer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        overflow: hidden;
-        padding: 0;
-        font-family: sans-serif;
-      }
       body {
         padding: 0;
         margin: 0;
         overflow: hidden;
         background-image:url(img/bg.jpg);
         background-size:cover;
+        font-family: sans-serif;
       }
       #map{
-        position:absolute;
-        top:0;
-        left:0;
-        bottom:0;
-        right:0;
         -webkit-filter: contrast(80%) saturate(100%) brightness(100%) sepia(25%) drop-shadow(0px 0px 40px rgb(245,245,210));
       }
       #content{
-        position:absolute;
-        top:0;
-        left:0;
-        right:0;
-        bottom:0;
         background-image:url(img/content.jpg);
         background-size:cover;
         opacity:0;
+      }
+      #clouds, .cloud, #overlay, #content, video{
         pointer-events:none;
       }
-      #clouds{
-        pointer-events:none;
-      }
-      .cloud.container{
+      .container,#cesiumContainer{
         position:absolute;
-        top:0%;
-        left:0%;
+        top:0;
+        left:0;
+        bottom:0;
+        right:0;
         height:100%;
         width:100%;
-        pointer-events:none;
+        margin:0;
+        padding:0;
+        overflow:hidden;
       }
-      video
-      {
+      video{position:absolute;}
+      video.StretchtoFit{ width: 100%; /* Important: No Height attribute is being specified */ }
+      .point{
+        height:10px;
+        width:10px;
         position:absolute;
-        pointer-events:none;
+        display:block;
+        background:#000;
+        border:4px solid yellow;
+        border-radius:20px;
       }
-      video.StretchtoFit
-      {
-        /* Important: No Height attribute is being specified */
-        width: 100%;
+      .point:before{
+        content:'';
+        display:block;
+        height:18px;
+        width:18px;
+        top:-7px;
+        left:-7px;
+        position:absolute;
+        border:3px solid #000;
+        border-radius:18px;
       }
     </style>
   </head>
 <body>
-  <div id="map"></div>
-  <div id="content"></div>
+  <div id="map" class="container"></div>
+  <div id="overlay" class="container">
+    <div class="point"></div>
+  </div>
+  <div id="content" class="container"></div>
   <div class="cloud container">
     <video id="zoom" class="StretchtoFit" src="video/zoom.webm"></video>
     <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
@@ -164,6 +162,11 @@
     viewer.scene.skyAtmosphere.destroy();
     viewer.scene.skyAtmosphere = undefined;
     viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
+    
+    /*var terrainProvider = new Cesium.CesiumTerrainProvider({
+      url : '//cesiumjs.org/tilesets/terrain/smallterrain'
+    });
+     viewer.scene.terrainProvider = terrainProvider;*/
 
     var ds = new Cesium.GeoJsonDataSource();
     ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
@@ -214,13 +217,21 @@
         
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);*/
   
-  
-    /*viewer.scene.postRender.addEventListener(function(scene,time) {
+    viewer.scene.postRender.addEventListener(function(scene,time) {
 
-     var position = Cesium.Ellipsoid.WGS84.cartographicToCartesian(new Cesium.Cartographic(0.0, 0.0));
-     console.log(Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, position));
+     //location of Bergen, Norway
+     var latitude = 60.3894; //degress
+     var longitude = 5.3300;
+     latitude = latitude * (Math.PI / 180); //radians
+     longitude = longitude * (Math.PI / 180);
+     var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
+     p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+     $('.point').css({
+      left: p.x+'px',
+      bottom: p.y+'px'
+     });
      
-    }); */
+    });
   
   </script>
 
