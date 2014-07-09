@@ -12,6 +12,7 @@
     <script src="js/lib/jquery.min.js"></script>
     <script src="js/lib/jquery.transit.min.js"></script>
     <script src="js/lib/stretch-video.js"></script>
+    <script src="js/lib/d3.min.js"></script>
     <script src="js/lib/Cesium/Cesium.js"></script>
     <script src="js/lib/dat.gui.min.js"></script>
     <style>
@@ -32,7 +33,7 @@
         background-size:cover;
         opacity:0;
       }
-      #clouds, .cloud, #overlay, #content, video{
+      #clouds, .cloud, #overlay, #content, video, svg{
         pointer-events:none;
       }
       .container,#cesiumContainer{
@@ -47,15 +48,24 @@
         padding:0;
         overflow:hidden;
       }
-      video{position:absolute;}
+      video{
+        position:absolute;
+        z-index:2;
+      }
+      .dg.ac{
+        z-index:3;
+      }
       video.StretchtoFit{ width: 100%; /* Important: No Height attribute is being specified */ }
+      #overlay{
+        z-index:1;
+      }
       .point{
         height:10px;
         width:10px;
         position:absolute;
         display:block;
         background:#000;
-        border:4px solid yellow;
+        border:4px solid white;
         border-radius:20px;
       }
       .point:before{
@@ -82,26 +92,45 @@
         padding: 3px 20px 1px 20px;
         box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.5);
         display:inline;
+        visibility:hidden;
+      }
+      .point.highlighted{
+        border-color:yellow;
+      }
+      .highlighted.point .label{
+        visibility:visible;
       }
     </style>
   </head>
 <body>
   <div id="map" class="container"></div>
   <div id="overlay" class="container">
-    <div class="point" data-latitude="63.4187362" data-longitude="10.4387621">
-      <div class="label">Trondheim, Norway</div>
+    <div class="point city trondheim" data-latitude="63.4187362" data-longitude="10.4387621">
+      <div class="label">Trondheim</div>
     </div>
-    <div class="point" data-latitude="60.3894" data-longitude="5.3300">
-      <div class="label">Bergen, Norway</div>
+    <div class="point city bergen" data-latitude="60.3894" data-longitude="5.3300">
+      <div class="label">Bergen</div>
     </div>
-    <div class="point" data-latitude="42.9230266" data-longitude="-89.2180235">
-      <div class="label">Stoughton, Wisconsin</div>
-    </div>
-    <div class="point" data-latitude="53.4200911" data-longitude="-2.9108429">
+    <div class="point city liverpool" data-latitude="53.4200911" data-longitude="-2.9108429">
       <div class="label">Liverpool, UK</div>
     </div>
-    <div class="point" data-latitude="40.7056308" data-longitude="-73.9780035">
+    <div class="point city new-york highlighted" data-latitude="40.7056308" data-longitude="-73.9780035">
       <div class="label">New York, New York</div>
+    </div>
+    <div class="point city stoughton highlighted" data-latitude="42.9230266" data-longitude="-89.2180235">
+      <div class="label">Stoughton, Wisconsin</div>
+    </div>
+    <div class="point city christiana highlighted" data-latitude="59.8938549" data-longitude="10.7851166">
+      <div class="label">Christiania</div>
+    </div>
+    <div class="point city arendal highlighted" data-latitude="58.4687227" data-longitude="8.7618567">
+      <div class="label">Arendal</div>
+    </div>
+    <div class="point city kristiansand highlighted" data-latitude="58.1529776" data-longitude="8.0092118">
+      <div class="label">Kristiansand</div>
+    </div>
+    <div class="point city hamburg highlighted" data-latitude="53.558572" data-longitude="9.9278215">
+      <div class="label">Hamburg, Germany</div>
     </div>
   </div>
   <div id="content" class="container"></div>
@@ -111,7 +140,16 @@
   </div>
   <script>
   
-  /* http://cesiumjs.org/Cesium/Build/Documentation/SceneTransforms.html?classFilter=&show=all#wgs84ToWindowCoordinates */
+  var route = [
+    "christiana",
+    "arendal",
+    "kristiansand",
+    "hamburg",
+    "new-york",
+    "stoughton"
+  ];
+  
+  var lines = {};
   
   var SETTINGS = {};
   SETTINGS["Outline Norway"] = false;
@@ -245,6 +283,17 @@
         
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);*/
   
+   
+   //This is the accessor function we talked about above
+   var lineFunction = d3.svg.line()
+                            .x(function(d) { return d.x; })
+                            .y(function(d) { return d.y; })
+                           .interpolate("basis");
+
+  //The SVG Container
+  var svgContainer = d3.select("body").append("svg")
+                                      .attr("class","container");
+  
   
     // Ellipsoid radii - WGS84 shown here
     
@@ -262,18 +311,11 @@
       var cvZ = viewer.scene.camera.position.z / rZ;
 
       var vhMagnitudeSquared = cvX * cvX + cvY * cvY + cvZ * cvZ - 1.0;
-
-      $('.point').each(function(){
       
-          var $p = $(this);
-      
-          var latitude = parseFloat($p.data('latitude')); //degress
-          var longitude = parseFloat($p.data('longitude'));
-          latitude = latitude * (Math.PI / 180); //radians
-          longitude = longitude * (Math.PI / 180);
-           
-          var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
-           
+      function getPointPosition($p){
+                      
+          var p = getCartPosition(parseFloat($p.data('latitude')),parseFloat($p.data('longitude')));
+          
           // Target position, transformed to scaled space
           var tX = p.x / rX;
           var tY = p.y / rY;
@@ -290,18 +332,68 @@
 
           var isOccluded = vtDotVc > vhMagnitudeSquared &&
                            vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
-                           
-          p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
-          
+          var p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+          if(p.x && p.y)
+            return {
+              x: p.x,
+              y: p.y,
+              visible: !isOccluded
+            }
+          else return;
+      }
+      
+      function getCartPosition(latitude,longitude){
+          latitude = latitude * (Math.PI / 180); //radians
+          longitude = longitude * (Math.PI / 180);
+          return viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
+      }
+      
+      var lineData = [];
+
+      $('.point').each(function(){
+          var $p = $(this);
+          p = getPointPosition($p);
           $p.css({
               left: p.x+'px',
               bottom: p.y+'px'
           });
-          
-          if(isOccluded) $p.fadeOut();
-          else $p.fadeIn();
+          if(p.visible) $p.fadeIn();
+          else $p.fadeOut();
       
       });
+      
+      var prevCity, prevP;
+      $.each(route,function(i,city){
+            var p = getPointPosition($('.'+city));
+            if(p){
+              if(prevP){
+                if(p.visible && prevP.visible){
+                  if(!lines[prevCity]) lines[prevCity] = {};
+                  if(!lines[prevCity][city]) lines[prevCity][city] = svgContainer.append("path")
+                                .attr("stroke", "yellow")
+                                .attr("stroke-width", 3)
+                               //.style("stroke-dasharray", ("10, 8"))
+                                .attr("fill", "none");
+                  var lineData = [];
+                  lineData.push({
+                    "x": prevP.x,
+                    "y": $('.container').height()-prevP.y
+                  });
+                  lineData.push({
+                    "x": p.x,
+                    "y": $('.container').height()-p.y
+                  });
+                  lines[prevCity][city].attr("d", lineFunction(lineData));
+                }else if(lines[prevCity] && lines[prevCity][city]){
+                  lines[prevCity][city].remove();
+                  delete lines[prevCity][city];
+                }
+            }
+            prevCity = city;
+            prevP = p;
+          }
+      });
+      
 
     });
   
