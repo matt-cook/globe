@@ -219,9 +219,12 @@
   
   
     // Ellipsoid radii - WGS84 shown here
-    var rX = 6378137.0;
-    var rY = 6378137.0;
-    var rZ = 6356752.3142451793;
+    
+    var scale = 1.04; //hide point before reaching edge
+    
+    var rX = 6378137.0 * scale;
+    var rY = 6378137.0 * scale;
+    var rZ = 6356752.3142451793 * scale;
     
     var $p = $('.point');
   
@@ -259,16 +262,15 @@
     var isOccluded = vtDotVc > vhMagnitudeSquared &&
                      vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
                      
-   p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
-   
-    if(isOccluded){
-      $p.hide();
-    }else{
-      $p.css({
+    p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+    
+    $p.css({
         left: p.x+'px',
         bottom: p.y+'px'
-       }).show();
-    }
+    });
+    
+    if(isOccluded) $p.fadeOut();
+    else $p.fadeIn();
      
     });
   
