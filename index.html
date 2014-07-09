@@ -217,6 +217,14 @@
         
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);*/
   
+  
+    // Ellipsoid radii - WGS84 shown here
+    var rX = 6378137.0;
+    var rY = 6378137.0;
+    var rZ = 6356752.3142451793;
+    
+    var $p = $('.point');
+  
     viewer.scene.postRender.addEventListener(function(scene,time) {
 
      //location of Bergen, Norway
@@ -224,12 +232,43 @@
      var longitude = 5.3300;
      latitude = latitude * (Math.PI / 180); //radians
      longitude = longitude * (Math.PI / 180);
-     var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
-     p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
-     $('.point').css({
-      left: p.x+'px',
-      bottom: p.y+'px'
-     });
+     
+     // Vector CV
+    var cvX = viewer.scene.camera.position.x / rX;
+    var cvY = viewer.scene.camera.position.y / rY;
+    var cvZ = viewer.scene.camera.position.z / rZ;
+
+    var vhMagnitudeSquared = cvX * cvX + cvY * cvY + cvZ * cvZ - 1.0;
+         
+    var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
+     
+     // Target position, transformed to scaled space
+    var tX = p.x / rX;
+    var tY = p.y / rY;
+    var tZ = p.z / rZ;
+
+    // Vector VT
+    var vtX = tX - cvX;
+    var vtY = tY - cvY;
+    var vtZ = tZ - cvZ;
+    var vtMagnitudeSquared = vtX * vtX + vtY * vtY + vtZ * vtZ;
+
+    // VT dot VC is the inverse of VT dot CV
+    var vtDotVc = -(vtX * cvX + vtY * cvY + vtZ * cvZ);
+
+    var isOccluded = vtDotVc > vhMagnitudeSquared &&
+                     vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
+                     
+   p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+   
+    if(isOccluded){
+      $p.hide();
+    }else{
+      $p.css({
+        left: p.x+'px',
+        bottom: p.y+'px'
+       }).show();
+    }
      
     });
   
