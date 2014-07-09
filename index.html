@@ -70,25 +70,35 @@
         border-radius:18px;
       }
       .point .label{
-      width: 180px;
-      background: #f2eede;
-      text-align: center;
-      position: absolute;
-      top: -34px;
-      left: -100px;
-      color: #573e3a;
-      text-transform: uppercase;
-      font-weight: bold;
-      padding: 3px 3px 1px 3px;
-      box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.5);
+        white-space: nowrap;
+        background: #f2eede;
+        text-align: center;
+        position: absolute;
+        top:-34px;
+        right:-30px;
+        color: #573e3a;
+        text-transform: uppercase;
+        font-weight: bold;
+        padding: 3px 20px 1px 20px;
+        box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.5);
+        display:inline;
       }
     </style>
   </head>
 <body>
   <div id="map" class="container"></div>
   <div id="overlay" class="container">
-    <div class="point">
+    <div class="point" data-latitude="63.4187362" data-longitude="10.4387621">
+      <div class="label">Trondheim, Norway</div>
+    </div>
+    <div class="point" data-latitude="60.3894" data-longitude="5.3300">
       <div class="label">Bergen, Norway</div>
+    </div>
+    <div class="point" data-latitude="42.9230266" data-longitude="-89.2180235">
+      <div class="label">Stoughton, Wisconsin</div>
+    </div>
+    <div class="point" data-latitude="53.4200911" data-longitude="-2.9108429">
+      <div class="label">Liverpook, UK</div>
     </div>
   </div>
   <div id="content" class="container"></div>
@@ -241,52 +251,55 @@
     var rY = 6378137.0 * scale;
     var rZ = 6356752.3142451793 * scale;
     
-    var $p = $('.point');
-  
     viewer.scene.postRender.addEventListener(function(scene,time) {
-
-     //location of Bergen, Norway
-     var latitude = 60.3894; //degress
-     var longitude = 5.3300;
-     latitude = latitude * (Math.PI / 180); //radians
-     longitude = longitude * (Math.PI / 180);
-     
-     // Vector CV
-    var cvX = viewer.scene.camera.position.x / rX;
-    var cvY = viewer.scene.camera.position.y / rY;
-    var cvZ = viewer.scene.camera.position.z / rZ;
-
-    var vhMagnitudeSquared = cvX * cvX + cvY * cvY + cvZ * cvZ - 1.0;
-         
-    var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
-     
-     // Target position, transformed to scaled space
-    var tX = p.x / rX;
-    var tY = p.y / rY;
-    var tZ = p.z / rZ;
-
-    // Vector VT
-    var vtX = tX - cvX;
-    var vtY = tY - cvY;
-    var vtZ = tZ - cvZ;
-    var vtMagnitudeSquared = vtX * vtX + vtY * vtY + vtZ * vtZ;
-
-    // VT dot VC is the inverse of VT dot CV
-    var vtDotVc = -(vtX * cvX + vtY * cvY + vtZ * cvZ);
-
-    var isOccluded = vtDotVc > vhMagnitudeSquared &&
-                     vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
-                     
-    p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
     
-    $p.css({
-        left: p.x+'px',
-        bottom: p.y+'px'
-    });
-    
-    if(isOccluded) $p.fadeOut();
-    else $p.fadeIn();
-     
+      // Vector CV
+      var cvX = viewer.scene.camera.position.x / rX;
+      var cvY = viewer.scene.camera.position.y / rY;
+      var cvZ = viewer.scene.camera.position.z / rZ;
+
+      var vhMagnitudeSquared = cvX * cvX + cvY * cvY + cvZ * cvZ - 1.0;
+
+      $('.point').each(function(){
+      
+          var $p = $(this);
+      
+          var latitude = parseFloat($p.data('latitude')); //degress
+          var longitude = parseFloat($p.data('longitude'));
+          latitude = latitude * (Math.PI / 180); //radians
+          longitude = longitude * (Math.PI / 180);
+           
+          var p = viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
+           
+          // Target position, transformed to scaled space
+          var tX = p.x / rX;
+          var tY = p.y / rY;
+          var tZ = p.z / rZ;
+
+          // Vector VT
+          var vtX = tX - cvX;
+          var vtY = tY - cvY;
+          var vtZ = tZ - cvZ;
+          var vtMagnitudeSquared = vtX * vtX + vtY * vtY + vtZ * vtZ;
+
+          // VT dot VC is the inverse of VT dot CV
+          var vtDotVc = -(vtX * cvX + vtY * cvY + vtZ * cvZ);
+
+          var isOccluded = vtDotVc > vhMagnitudeSquared &&
+                           vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
+                           
+          p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+          
+          $p.css({
+              left: p.x+'px',
+              bottom: p.y+'px'
+          });
+          
+          if(isOccluded) $p.fadeOut();
+          else $p.fadeIn();
+      
+      });
+
     });
   
   </script>
