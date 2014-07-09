@@ -69,12 +69,27 @@
         border:3px solid #000;
         border-radius:18px;
       }
+      .point .label{
+      width: 180px;
+      background: #f2eede;
+      text-align: center;
+      position: absolute;
+      top: -34px;
+      left: -100px;
+      color: #573e3a;
+      text-transform: uppercase;
+      font-weight: bold;
+      padding: 3px 3px 1px 3px;
+      box-shadow: 2px 2px 8px 0px rgba(0,0,0,0.5);
+      }
     </style>
   </head>
 <body>
   <div id="map" class="container"></div>
   <div id="overlay" class="container">
-    <div class="point"></div>
+    <div class="point">
+      <div class="label">Bergen, Norway</div>
+    </div>
   </div>
   <div id="content" class="container"></div>
   <div class="cloud container">
