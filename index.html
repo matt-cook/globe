@@ -140,14 +140,14 @@
   </div>
   <script>
   
-  var route = [
-    "christiana",
-    "arendal",
-    "kristiansand",
-    "hamburg",
-    "new-york",
-    "stoughton"
-  ];
+  var route = {
+    "christiana": [[59.852012, 10.607650],[59.798170, 10.560958],[59.727631, 10.558212],[59.622932, 10.624130],[59.430015, 10.532119],[59.205072, 10.635116],[58.589941, 9.876711]],
+    "arendal": [[58.267834, 8.898928]],
+    "kristiansand": [[56.497599, 6.822512],[54.122449, 7.987063],[53.870583, 9.041751],[53.857625, 9.305422],[53.591115, 9.607546]],
+    "hamburg": [[53.591115, 9.607546],[53.857625, 9.305422],[53.870583, 9.041751],[53.991894, 5.081285],[51.038227, 1.719470],[49.947980, -1.752210],[47.350299, -15.507093],[34.772241, -57.664898]],
+    "new-york": [[40.608892, -87.723492],[41.491916, -89.305523]],
+    "stoughton": []
+  };
   
   var lines = {};
   
@@ -314,7 +314,7 @@
       
       function getPointPosition($p){
                       
-          var p = getCartPosition(parseFloat($p.data('latitude')),parseFloat($p.data('longitude')));
+          var p = getCartesian(parseFloat($p.data('latitude')),parseFloat($p.data('longitude')));
           
           // Target position, transformed to scaled space
           var tX = p.x / rX;
@@ -342,10 +342,16 @@
           else return;
       }
       
-      function getCartPosition(latitude,longitude){
+      function getCartesian(latitude,longitude){
           latitude = latitude * (Math.PI / 180); //radians
           longitude = longitude * (Math.PI / 180);
           return viewer.scene.globe.ellipsoid.cartographicToCartesian(new Cesium.Cartographic(longitude,latitude));
+      }
+      
+      function getCartPosition(latitude,longitude){
+          var p = getCartesian(latitude,longitude);
+          return Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
+          
       }
       
       var lineData = [];
@@ -362,8 +368,8 @@
       
       });
       
-      var prevCity, prevP;
-      $.each(route,function(i,city){
+      var prevCity, prevP, prevPoints;
+      $.each(route,function(city,points){
             var p = getPointPosition($('.'+city));
             if(p){
               if(prevP){
@@ -379,6 +385,13 @@
                     "x": prevP.x,
                     "y": $('.container').height()-prevP.y
                   });
+                  $.each(prevPoints,function(i,v){
+                     var v = getCartPosition(v[0],v[1]);
+                     lineData.push({
+                        "x": v.x,
+                        "y": $('.container').height()-v.y
+                      });
+                  });
                   lineData.push({
                     "x": p.x,
                     "y": $('.container').height()-p.y
@@ -391,6 +404,7 @@
             }
             prevCity = city;
             prevP = p;
+            prevPoints = points;
           }
       });
       
