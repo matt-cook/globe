@@ -377,34 +377,34 @@
             if(p){
               if(p.x > w || p.x < 0 || p.y > h || p.y < 0) p.visible = false;
               if(prevP){
+                if(!lines[prevCity]) lines[prevCity] = {};
+                if(!lines[prevCity][city]) lines[prevCity][city] = svgContainer.append("path")
+                              .attr("stroke", "yellow")
+                              .attr("stroke-width", 3)
+                             //.style("stroke-dasharray", ("10, 8"))
+                              .attr("fill", "none");
+                var lineData = [];
+                lineData.push({
+                  "x": prevP.x,
+                  "y": h-prevP.y
+                });
+                $.each(prevPoints,function(i,v){
+                   var v = getCartPosition(v[0],v[1]);
+                   lineData.push({
+                      "x": v.x,
+                      "y": h-v.y
+                    });
+                });
+                lineData.push({
+                  "x": p.x,
+                  "y": h-p.y
+                });
+                lines[prevCity][city].attr("d", lineFunction(lineData));
                 if(p.visible && prevP.visible){
-                  if(!lines[prevCity]) lines[prevCity] = {};
-                  if(!lines[prevCity][city]) lines[prevCity][city] = svgContainer.append("path")
-                                .attr("stroke", "yellow")
-                                .attr("stroke-width", 3)
-                               //.style("stroke-dasharray", ("10, 8"))
-                                .attr("fill", "none");
-                  var lineData = [];
-                  lineData.push({
-                    "x": prevP.x,
-                    "y": h-prevP.y
-                  });
-                  $.each(prevPoints,function(i,v){
-                     var v = getCartPosition(v[0],v[1]);
-                     lineData.push({
-                        "x": v.x,
-                        "y": h-v.y
-                      });
-                  });
-                  lineData.push({
-                    "x": p.x,
-                    "y": h-p.y
-                  });
-                  lines[prevCity][city].attr("d", lineFunction(lineData));
-                }else if(lines[prevCity] && lines[prevCity][city]){
-                  lines[prevCity][city].remove();
-                  delete lines[prevCity][city];
-                }
+                  lines[prevCity][city].transition().style("opacity",1).duration(100);
+                }else{
+                  lines[prevCity][city].transition().style("opacity",0).duration(100);
+               }
             }
             prevCity = city;
             prevP = p;
