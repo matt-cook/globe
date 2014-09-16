@@ -22,12 +22,12 @@ var isZoomed = false;
 SETTINGS["Zoom"] = function(){
 	if(isZoomed){
 		$("#content").transition({opacity:0});
-		viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+		viewer.scene.camera.flyTo({
 			destination : start.position,
 			direction: start.direction,
 			up: start.up,
-			duration: SETTINGS["Zoom Duration"]*1000
-		}));
+			duration: SETTINGS["Zoom Duration"]
+		});
 	}else{
 		var v = document.getElementById('zoom');
 		v.playbackRate = v.duration/SETTINGS["Zoom Duration"];
@@ -44,10 +44,10 @@ SETTINGS["Zoom"] = function(){
 			}
 		});
 		v.play();
-		viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+		viewer.scene.camera.flyTo({
 			destination : new Cesium.Cartesian3(3171739,362164.0727772717,5505013.132590841),
-			duration: SETTINGS["Zoom Duration"]*1000
-		}));
+			duration: SETTINGS["Zoom Duration"]
+		});
 	}
 	isZoomed = !isZoomed;
 };
@@ -97,8 +97,8 @@ viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
 	viewer.scene.terrainProvider = terrainProvider;*/
 
 var ds = new Cesium.GeoJsonDataSource();
-ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
-ds.defaultPolygon.polygon = undefined;
+//ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
+//ds.defaultPolygon.polygon = undefined;
 ds.loadUrl('./norway.json');
 
 window.onload = function() {
@@ -127,11 +127,11 @@ window.onload = function() {
 	gui.add(SETTINGS,'Zoom Duration',0.1,30.0);
 };
 
-viewer.scene.animations.add(Cesium.CameraFlightPath.createAnimation(viewer.scene, {
+viewer.scene.camera.flyTo({
 	destination : start.position,
 	direction: start.direction,
 	up: start.up
-}));
+});
 
  /*var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 	 handler.setInputAction(function(movement) {
@@ -203,7 +203,7 @@ var lineFunction = d3.svg.line()
 			var isOccluded = vtDotVc > vhMagnitudeSquared &&
 				vtDotVc * vtDotVc / vtMagnitudeSquared > vhMagnitudeSquared;
 			var p = Cesium.SceneTransforms.wgs84ToWindowCoordinates(scene, p);
-			if(p.x && p.y)
+			if(p && p.x && p.y)
 				return {
 					x: p.x,
 						y: p.y,
@@ -231,23 +231,25 @@ var lineFunction = d3.svg.line()
 			var $l =  $('.label[data-city="'+$p.data('city')+'"');
 			var p = getPointPosition($p);
 			var l = getPointPosition($p,LABEL_ALTITUDE);
-			if(p.x > w || p.x < 0 || p.y > h || p.y < 0) p.visible = false;
-			$p.css({
-				left: p.x+'px',
-				bottom: p.y+'px'
-			});
-			$l.css({
-				left: (l.x-$l.width()/2)+'px',
-				bottom: (l.y+15)+'px',
-				scale: MIN_LABEL_SIZE + (MAX_LABEL_SIZE - MIN_LABEL_SIZE) * (LABEL_ZOOM_ALTITUDE / height)
-			});
-			if(p.visible) {
-				$l.fadeIn();
-				$p.fadeIn();
-			}else{
-				$l.fadeOut();
-				$p.fadeOut();
-			}
+      if(p && l){
+        if(p.x > w || p.x < 0 || p.y > h || p.y < 0) p.visible = false;
+        $p.css({
+          left: p.x+'px',
+          top: p.y+'px'
+        });
+        $l.css({
+          left: (l.x-$l.width()/2)+'px',
+          top: (l.y-15)+'px',
+          scale: MIN_LABEL_SIZE + (MAX_LABEL_SIZE - MIN_LABEL_SIZE) * (LABEL_ZOOM_ALTITUDE / height)
+        });
+        if(p.visible) {
+          $l.fadeIn();
+          $p.fadeIn();
+        }else{
+          $l.fadeOut();
+          $p.fadeOut();
+        }
+      }
 
 		});
 
@@ -268,18 +270,20 @@ var lineFunction = d3.svg.line()
 		var lineData = [];
 		lineData.push({
 			"x": prevP.x,
-			"y": h-prevP.y
+			"y": prevP.y
 		});
 		$.each(prevPoints,function(i,v){
 			var v = getCartPosition(v[0],v[1]);
-			lineData.push({
-				"x": v.x,
-				"y": h-v.y
-			});
+      if(v && v.x && v.y){
+        lineData.push({
+          "x": v.x,
+          "y": v.y
+        });
+      }
 		});
 		lineData.push({
 			"x": p.x,
-			"y": h-p.y
+			"y": p.y
 		});
 		lines[prevCity][city].attr("d", lineFunction(lineData));
 		if(p.visible && prevP.visible){
