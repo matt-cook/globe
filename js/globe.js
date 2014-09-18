@@ -66,7 +66,8 @@ var viewer = new Cesium.Viewer('map', {
 		navigationInstructionsInitiallyVisible:false,
 		contextOptions :{
 			webgl : {
-				alpha : true
+				alpha : true,
+        preserveDrawingBuffer: true
 			}
 		},
 		imageryProvider : new Cesium.TileMapServiceImageryProvider({
@@ -75,7 +76,7 @@ var viewer = new Cesium.Viewer('map', {
 		}),
 		baseLayerPicker : false
 });
-
+//viewer.resolutionScale = 2.0;
 var start = {}; //norway starting position
 start.position = new Cesium.Cartesian3(4386332.163006191,1188368.0173394924,6153437.48635143);
 start.direction = new Cesium.Cartesian3(-0.9008236819028285,-0.3410092694636061,-0.2687552274150766);
@@ -97,9 +98,15 @@ viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
 	viewer.scene.terrainProvider = terrainProvider;*/
 
 var ds = new Cesium.GeoJsonDataSource();
-//ds.defaultPolygon.polyline.width = new Cesium.ConstantProperty(1);
-//ds.defaultPolygon.polygon = undefined;
-ds.loadUrl('./norway.json');
+ds.loadUrl('./norway.json').then(function(){
+  var e = ds.entities.entities;
+  for (var i = 0; i < e.length; i++) {
+    var color = Cesium.Color.fromRandom({
+      alpha : 1.0
+    });
+    e[i].polygon.material = Cesium.ColorMaterialProperty.fromColor(color);
+  }
+});
 
 window.onload = function() {
 	var gui = new dat.GUI();
@@ -125,6 +132,7 @@ window.onload = function() {
 	});
 	gui.add(SETTINGS,'Zoom');
 	gui.add(SETTINGS,'Zoom Duration',0.1,30.0);
+  gui.add(viewer,'resolutionScale',0.01,3.0);
 };
 
 viewer.scene.camera.flyTo({
@@ -171,7 +179,14 @@ var lineFunction = d3.svg.line()
 	var rY = 6378137.0 * scale;
 	var rZ = 6356752.3142451793 * scale;
 
+  var glowContext = document.getElementById('glow').getContext('2d');
+
 	viewer.scene.postRender.addEventListener(function(scene,time) {
+
+    //draw to glow canvas
+    glowContext.canvas.width  = window.innerWidth;
+    glowContext.canvas.height = window.innerHeight;
+    glowContext.drawImage(scene.canvas, 0, 0);
 
 		var height = scene.globe.ellipsoid.cartesianToCartographic(scene.camera.position).height;
 
