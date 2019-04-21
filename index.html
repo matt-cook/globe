@@ -18,9 +18,10 @@
     <script src="js/lib/dat.gui.min.js"></script>
   </head>
 <body>
-  <canvas id="glow"></canvas>
+
   <div id="map" class="container"></div>
-  <div id="overlay" class="container">
+
+  <div id="overlay" class="hidden container">
     <div class="point city trondheim" data-latitude="63.4187362" data-longitude="10.4387621" data-city="trondheim"></div>
 		<div class="label" data-city="trondheim">Trondheim</div>
     <div class="point city bergen" data-latitude="60.3894" data-longitude="5.3300" data-city="bergen"></div>
@@ -40,11 +41,8 @@
     <div class="point city hamburg highlighted" data-latitude="53.558572" data-longitude="9.9278215" data-city="hamburg"></div>
 		<div class="label" data-city="hamburg">Hamburg, Germany</div>
   </div>
+  
   <div id="content" class="container"></div>
-  <div class="cloud container">
-    <video id="zoom" class="StretchtoFit" src="video/zoom.webm"></video>
-    <video id="clouds" class="StretchtoFit" autoplay src="video/clouds.webm" loop></video>
-  </div> 
   <script src="js/globe.js"></script>
 </body>
 </html>

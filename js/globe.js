@@ -67,13 +67,14 @@ var viewer = new Cesium.Viewer('map', {
 		contextOptions :{
 			webgl : {
 				alpha : true,
-        preserveDrawingBuffer: true
+				preserveDrawingBuffer: true,
+				antialias: false
 			}
 		},
-		imageryProvider : new Cesium.TileMapServiceImageryProvider({
+		/*imageryProvider : new Cesium.TileMapServiceImageryProvider({
 			url : './tiles',
 		maximumLevel: 8
-		}),
+		}),*/
 		baseLayerPicker : false
 });
 //viewer.resolutionScale = 2.0;
@@ -84,8 +85,18 @@ start.up = new Cesium.Cartesian3(-0.2423848364942298,-0.1185885488280502,0.96290
 
 viewer.scene.skyBox.destroy();
 viewer.scene.skyBox = undefined;
-viewer.scene.sun.destroy();
-viewer.scene.sun = undefined;
+/*viewer.scene.skyBox = new Cesium.SkyBox({
+  sources : {
+    positiveX : './img/stars.png',
+    negativeX : './img/stars.png',
+    positiveY : './img/stars.png',
+    negativeY : './img/stars.png',
+    positiveZ : './img/stars.png',
+    negativeZ : './img/stars.png'
+  }
+});*/
+/*viewer.scene.sun.destroy();
+viewer.scene.sun = undefined;*/
 viewer.scene.moon.destroy();
 viewer.scene.moon = undefined;
 viewer.scene.skyAtmosphere.destroy();
@@ -97,7 +108,7 @@ viewer.scene.backgroundColor = new Cesium.Color(0,0.0,0,0.0);
 	});
 	viewer.scene.terrainProvider = terrainProvider;*/
 
-var ds = new Cesium.GeoJsonDataSource();
+/*var ds = new Cesium.GeoJsonDataSource();
 ds.loadUrl('./norway.json').then(function(){
   var e = ds.entities.entities;
   for (var i = 0; i < e.length; i++) {
@@ -106,7 +117,7 @@ ds.loadUrl('./norway.json').then(function(){
     });
     e[i].polygon.material = Cesium.ColorMaterialProperty.fromColor(color);
   }
-});
+});*/
 
 window.onload = function() {
 	var gui = new dat.GUI();
@@ -132,14 +143,19 @@ window.onload = function() {
 	});
 	gui.add(SETTINGS,'Zoom');
 	gui.add(SETTINGS,'Zoom Duration',0.1,30.0);
-  gui.add(viewer,'resolutionScale',0.01,3.0);
+  gui.add(viewer,'resolutionScale',0.01,0.1);
 };
+
+
+viewer.scene.globe.enableLighting = true;
 
 viewer.scene.camera.flyTo({
 	destination : start.position,
 	direction: start.direction,
 	up: start.up
 });
+
+viewer.resolutionScale = 0.085;
 
  /*var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 	 handler.setInputAction(function(movement) {
@@ -179,14 +195,8 @@ var lineFunction = d3.svg.line()
 	var rY = 6378137.0 * scale;
 	var rZ = 6356752.3142451793 * scale;
 
-  var glowContext = document.getElementById('glow').getContext('2d');
 
 	viewer.scene.postRender.addEventListener(function(scene,time) {
-
-    //draw to glow canvas
-    glowContext.canvas.width  = window.innerWidth;
-    glowContext.canvas.height = window.innerHeight;
-    glowContext.drawImage(scene.canvas, 0, 0);
 
 		var height = scene.globe.ellipsoid.cartesianToCartographic(scene.camera.position).height;
 
@@ -241,7 +251,7 @@ var lineFunction = d3.svg.line()
 
 		var lineData = [];
 
-		$('.point').each(function(){
+	/*$('.point').each(function(){
 			var $p = $(this);
 			var $l =  $('.label[data-city="'+$p.data('city')+'"');
 			var p = getPointPosition($p);
@@ -311,7 +321,7 @@ var lineFunction = d3.svg.line()
 				prevP = p;
 				prevPoints = points;
 			}
-		});
+		});*/
 
 
 	});

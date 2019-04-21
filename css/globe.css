@@ -3,11 +3,14 @@ body {
 	padding: 0;
 	margin: 0;
 	overflow: hidden;
-	background-image:url(../img/bg.jpg);
+	background-image:url(../img/bg.png);
 	background-size:cover;
 	font-family: sans-serif;
+	image-rendering: pixelated;
 }
-#map{
+.hidden{
+	display:none;
+	visibility: hidden;
 }
 #glow{
   position:absolute;
@@ -101,3 +104,8 @@ video.StretchtoFit{ width: 100%; /* Important: No Height attribute is being spec
 .highlighted .label{
 	visibility:visible;
 }
+.cesium-widget canvas{
+	image-rendering: pixelated;
+	filter:  sepia(100%) hue-rotate(-40deg) brightness(110%) contrast(130%) saturate(200%);;
+}
+
